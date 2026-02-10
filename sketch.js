@@ -1,6 +1,9 @@
-let stitchWidth = 70;
+let stitchWidth = 20;
+let margin = 100;
 let cols = [];
 let rows = [];
+let waveSpeed = 0.02;
+let wavePhase = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -8,7 +11,7 @@ function setup() {
   for (let i = 0; i < width; i += stitchWidth) {
     cols.push({
       x: i,
-      targetOffset: random([0,1]),
+      targetOffset: 0,
       slideOffset: random()
     });
   }
@@ -16,7 +19,7 @@ function setup() {
   for (let j = 0; j < height; j += stitchWidth) {
     rows.push({
       y: j,
-      targetOffset: random([0,1]),
+      targetOffset: 0,
       slideOffset: random()
     });
   }
@@ -28,36 +31,48 @@ function slide(obj) {
   if (abs(obj.slideOffset - obj.targetOffset) < 0.01) obj.slideOffset = obj.targetOffset;
 }
 
+function updateWaves() {
+  wavePhase += waveSpeed;
+
+  for (let i = 0; i < cols.length; i++) {
+    let t = (i / cols.length) + wavePhase;
+    cols[i].targetOffset = (sin(TWO_PI * t) > 0) ? 1 : 0;
+  }
+
+  for (let j = 0; j < rows.length; j++) {
+    let t = (j / rows.length) + wavePhase;
+    rows[j].targetOffset = (sin(TWO_PI * t) > 0) ? 1 : 0;
+  }
+}
+
 function draw() {
   background(20);
   strokeWeight(5);
 
+  updateWaves();
+
+  stroke(200, 50, 255);
   for (let col of cols) {
     slide(col);
-    let c1 = color(120, 0, 255);
-    let c2 = color(255, 150, 100);
-    stroke(lerpColor(c1, c2, col.slideOffset));
-
     for (let j = 0; j < height; j += stitchWidth * 2) {
       let y = j + col.slideOffset * stitchWidth;
-      line(col.x, y, col.x, y + stitchWidth);
+      if ((y < margin || y + stitchWidth > height - margin || (y >= margin && y + stitchWidth <= height - margin))
+          && !(col.x < margin || col.x > width - margin)) {
+        line(col.x, y, col.x, y + stitchWidth);
+      }
     }
-
-    if (frameCount % 120 === 0) col.targetOffset = random([0,1]);
   }
 
+  stroke(0, 220, 255);
   for (let row of rows) {
     slide(row);
-    let c1 = color(0, 200, 255);
-    let c2 = color(0, 255, 120);
-    stroke(lerpColor(c1, c2, row.slideOffset));
-
     for (let i = 0; i < width; i += stitchWidth * 2) {
       let x = i + row.slideOffset * stitchWidth;
-      line(x, row.y, x + stitchWidth, row.y);
+      if ((x < margin || x + stitchWidth > width - margin || (x >= margin && x + stitchWidth <= width - margin))
+          && !(row.y < margin || row.y > height - margin)) {
+        line(x, row.y, x + stitchWidth, row.y);
+      }
     }
-
-    if (frameCount % 120 === 0) row.targetOffset = random([0,1]);
   }
 }
 
