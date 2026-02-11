@@ -28,7 +28,7 @@ function draw() {
 
   // --- Pick random batch of rows/columns ---
   if (frameCount % stepFrames === 0) {
-    
+
     currentDirection = (currentDirection === 'horizontal') ? 'vertical' : 'horizontal';
 if (frameCount % stepFrames === 0) {
   if (currentDirection === 'horizontal') {
@@ -66,16 +66,10 @@ if (frameCount % stepFrames === 0) {
       }
     }
 
-    for (let i = 0; i < width; i += stitchWidth * 2) {
-<<<<<<< HEAD
-      let x = -stitchWidth + i + row.slideOffset * stitchWidth + row.phase * stitchWidth;
-
-     
-=======
+    for (let i = -stitchWidth; i < width; i += stitchWidth * 2) {
       let x = i + row.slideOffset * stitchWidth + row.phase * stitchWidth;
       if ((x < margin || x + stitchWidth > width - margin || (x >= margin && x + stitchWidth <= width - margin))
           && !(row.y < margin || row.y > height - margin)) {
->>>>>>> parent of 2353ca6 (Refactor line drawing conditions in sketch.js)
         line(x, row.y, x + stitchWidth, row.y);
       }
     }
@@ -102,15 +96,10 @@ if (frameCount % stepFrames === 0) {
       }
     }
 
-    for (let j = 0; j < height; j += stitchWidth * 2) {
-<<<<<<< HEAD
-      let y = -stitchWidth + j + col.slideOffset * stitchWidth + col.phase * stitchWidth;
-    
-=======
+    for (let j = -stitchWidth; j < height; j += stitchWidth * 2) {
       let y = j + col.slideOffset * stitchWidth + col.phase * stitchWidth;
       if ((y < margin || y + stitchWidth > height - margin || (y >= margin && y + stitchWidth <= height - margin))
           && !(col.x < margin || col.x > width - margin)) {
->>>>>>> parent of 2353ca6 (Refactor line drawing conditions in sketch.js)
         line(col.x, y, col.x, y + stitchWidth);
       }
     }
