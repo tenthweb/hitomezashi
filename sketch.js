@@ -67,7 +67,8 @@ if (frameCount % stepFrames === 0) {
     }
 
     for (let i = 0; i < width; i += stitchWidth * 2) {
-      let x = i + row.slideOffset * stitchWidth + row.phase * stitchWidth;
+      let x = -stitchWidth + i + row.slideOffset * stitchWidth + row.phase * stitchWidth;
+
      
         line(x, row.y, x + stitchWidth, row.y);
       
@@ -96,7 +97,7 @@ if (frameCount % stepFrames === 0) {
     }
 
     for (let j = 0; j < height; j += stitchWidth * 2) {
-      let y = j + col.slideOffset * stitchWidth + col.phase * stitchWidth;
+      let y = -stitchWidth + j + col.slideOffset * stitchWidth + col.phase * stitchWidth;
     
         line(col.x, y, col.x, y + stitchWidth);
     
