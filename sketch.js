@@ -2,9 +2,9 @@ let stitchWidth = 40;
 let margin = 200;
 let cols = [];
 let rows = [];
-let speed = 0.03;
+let speed = 0.04;
 let stepFrames = 80; // how often new batches are picked
-let batchChance = 0.5; // probability each stitch is picked in a batch
+let batchChance = 0.4; // probability each stitch is picked in a batch
 let currentDirection = 'horizontal'; // start with horizontal
 
 
@@ -12,11 +12,11 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   strokeWeight(3);
 
-  for (let i = 0; i < width; i += stitchWidth) {
+  for (let i = -stitchWidth; i < width; i += stitchWidth) {
     cols.push({ x: i, slideOffset: 0, phase: 0, moving: false, cooldown: 0 });
   }
 
-  for (let j = 0; j < height; j += stitchWidth) {
+  for (let j =  -stitchWidth; j < height; j += stitchWidth) {
     rows.push({ y: j, slideOffset: 0, phase: 0, moving: false, cooldown: 0 });
   }
 }
