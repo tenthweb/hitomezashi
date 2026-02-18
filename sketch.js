@@ -21,9 +21,26 @@ function setup() {
   }
 }
 
+function drawFaintGrid() {
+  stroke(255, 255, 255, 12); // very faint white
+  strokeWeight(1);
+
+  for (let x = 0; x < width; x += stitchWidth) {
+    line(x, 0, x, height);
+  }
+
+  for (let y = 0; y < height; y += stitchWidth) {
+    line(0, y, width, y);
+  }
+}
+
+
+
+
 function draw() {
   background(30, 30, 47); // background colour
 
+  drawFaintGrid(); // 
 
 
   // --- Pick random batch of rows/columns ---
