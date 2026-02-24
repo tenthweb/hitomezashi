@@ -7,17 +7,30 @@ let stepFrames = 80; // how often new batches are picked
 let batchChance = 0.4; // probability each stitch is picked in a batch
 let currentDirection = 'horizontal'; // start with horizontal
 
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
   strokeWeight(3);
 
   for (let i = -stitchWidth; i < width; i += stitchWidth) {
-    cols.push({ x: i, slideOffset: 0, phase: 0, moving: false, cooldown: 0 });
+    cols.push({
+      x: i,
+      slideOffset: 0,
+      phase: 0,
+      moving: false,
+      cooldown: 0,
+      lockedColor: color(random(180, 255), random(50, 120), random(50, 120))
+    });
   }
 
-  for (let j =  -stitchWidth; j < height; j += stitchWidth) {
-    rows.push({ y: j, slideOffset: 0, phase: 0, moving: false, cooldown: 0 });
+  for (let j = -stitchWidth; j < height; j += stitchWidth) {
+    rows.push({
+      y: j,
+      slideOffset: 0,
+      phase: 0,
+      moving: false,
+      cooldown: 0,
+      lockedColor: color(random(50, 120), random(180, 255), random(200, 255))
+    });
   }
 }
 
@@ -34,54 +47,52 @@ function drawFaintGrid() {
   }
 }
 
-
-
-
 function draw() {
   background(30, 30, 47); // background colour
 
-  drawFaintGrid(); // 
-
+  drawFaintGrid(); //
 
   // --- Pick random batch of rows/columns ---
   if (frameCount % stepFrames === 0) {
-
     currentDirection = (currentDirection === 'horizontal') ? 'vertical' : 'horizontal';
-if (frameCount % stepFrames === 0) {
-  if (currentDirection === 'horizontal') {
-    for (let row of rows) {
-      if (!row.moving && row.phase < 2 && row.cooldown === 0 && random() < batchChance) {
-        row.moving = true;
+
+    if (currentDirection === 'horizontal') {
+      for (let row of rows) {
+        if (!row.moving && row.phase < 2 && row.cooldown === 0 && random() < batchChance) {
+          row.moving = true;
+        }
       }
-    }
-  } else {
-    for (let col of cols) {
-      if (!col.moving && col.phase < 2 && col.cooldown === 0 && random() < batchChance) {
-        col.moving = true;
+    } else {
+      for (let col of cols) {
+        if (!col.moving && col.phase < 2 && col.cooldown === 0 && random() < batchChance) {
+          col.moving = true;
+        }
       }
     }
   }
-}}
+
   // --- Horizontal lines ---
-  stroke(51, 161, 204); // horizontal thread colour
   for (let row of rows) {
     if (row.cooldown > 0) row.cooldown--;
 
     if (row.moving) {
-      row.slideOffset = min(row.slideOffset + speed, 1); // clamp to 1
+      row.slideOffset = min(row.slideOffset + speed, 1);
 
       if (row.slideOffset >= 1) {
         row.slideOffset = 0;
         row.phase += 1;
         row.moving = false;
-        row.cooldown = stepFrames; // prevent immediate reactivation
+        row.cooldown = stepFrames;
       }
 
       if (row.phase >= 2) {
         row.phase = 0;
-        row.slideOffset = 0; // snap back to exact start
+        row.slideOffset = 0;
       }
     }
+
+    // Set stroke depending on moving or locked
+    stroke(row.moving ? color(51, 161, 204) : row.lockedColor);
 
     for (let i = -stitchWidth; i < width; i += stitchWidth * 2) {
       let x = i + row.slideOffset * stitchWidth + row.phase * stitchWidth;
@@ -93,7 +104,6 @@ if (frameCount % stepFrames === 0) {
   }
 
   // --- Vertical lines ---
-  stroke(214, 51, 108); // vertical thread colour
   for (let col of cols) {
     if (col.cooldown > 0) col.cooldown--;
 
@@ -112,6 +122,8 @@ if (frameCount % stepFrames === 0) {
         col.slideOffset = 0;
       }
     }
+
+    stroke(col.moving ? color(214, 51, 108) : col.lockedColor);
 
     for (let j = -stitchWidth; j < height; j += stitchWidth * 2) {
       let y = j + col.slideOffset * stitchWidth + col.phase * stitchWidth;
