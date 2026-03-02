@@ -1,13 +1,15 @@
-let stitchWidth = 40;
+let stitchWidth = 20;
 let margin = 200;
 let cols = [];
 let rows = [];
-let speed = 0.04;
-let stepFrames = 80; // how often new batches are picked
-let batchChance = 0.4; // probability each stitch is picked in a batch
-let currentDirection = 'horizontal'; // start with horizontal
 
-// unified parity colours
+let speed = 0.04;
+let stepFrames = 80;
+let batchChance = 0.4;
+
+let fadeFrames = 30; // ~500ms at 60fps
+let currentDirection = 'horizontal';
+
 let colorEven = [51, 161, 204]; // blue
 let colorOdd  = [214, 51, 108]; // red
 
@@ -15,28 +17,154 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   strokeWeight(3);
 
-  // create columns
+  // Columns
   for (let i = -stitchWidth, idx = 0; i < width; i += stitchWidth, idx++) {
-    cols.push({
-      x: i,
-      slideOffset: 0,
-      phase: 0,
-      moving: false,
-      cooldown: 0,
-      idx: idx
-    });
+    cols.push(makeLineObject(i, idx, true));
   }
 
-  // create rows
+  // Rows
   for (let j = -stitchWidth, idx = 0; j < height; j += stitchWidth, idx++) {
-    rows.push({
-      y: j,
-      slideOffset: 0,
-      phase: 0,
-      moving: false,
-      cooldown: 0,
-      idx: idx
-    });
+    rows.push(makeLineObject(j, idx, false));
+  }
+}
+
+function makeLineObject(pos, idx, isVertical) {
+  return {
+    pos: pos,
+    idx: idx,
+    slideOffset: 0,
+    phase: 0,
+    state: "waiting",   // "moving", "fading", "waiting"
+    cooldown: 0,
+    fadeT: 0,
+    isVertical: isVertical
+  };
+}
+
+function draw() {
+  background(30, 30, 47);
+  drawFaintGrid();
+
+  // Alternate which direction can start moving
+  if (frameCount % stepFrames === 0) {
+    currentDirection =
+      currentDirection === "horizontal" ? "vertical" : "horizontal";
+
+    let group =
+      currentDirection === "horizontal" ? rows : cols;
+
+    for (let line of group) {
+      if (line.state === "waiting" &&
+          line.cooldown === 0 &&
+          random() < batchChance) {
+        line.state = "moving";
+      }
+    }
+  }
+
+  // Update and draw everything
+  updateGroup(rows);
+  updateGroup(cols);
+}
+function updateGroup(group) {
+  for (let line of group) {
+
+    if (line.cooldown > 0) {
+      line.cooldown--;
+    }
+
+    // --------------------
+    // MOVEMENT
+    // --------------------
+    if (line.state === "moving") {
+      line.slideOffset += speed;
+
+      if (line.slideOffset >= 1) {
+
+        // Maintain geometric continuity
+        line.slideOffset = 0;
+        line.phase = (line.phase + 1) % 2;
+
+        // Now begin colour fade
+        line.state = "fading";
+        line.fadeT = 0;
+      }
+    }
+
+    // --------------------
+    // COLOUR FADE
+    // --------------------
+    else if (line.state === "fading") {
+
+      line.fadeT += 1 / fadeFrames;
+
+      if (line.fadeT >= 1) {
+        line.fadeT = 0;
+        line.state = "waiting";
+        line.cooldown = stepFrames;
+      }
+    }
+
+    // --------------------
+    // DRAW
+    // --------------------
+    if (line.isVertical) {
+      drawVertical(line);
+    } else {
+      drawHorizontal(line);
+    }
+  }
+}
+
+function drawHorizontal(row) {
+  for (let i = -stitchWidth; i < width; i += stitchWidth * 2) {
+
+    let x = i + row.slideOffset * stitchWidth + row.phase * stitchWidth;
+
+    if (row.pos < margin || row.pos > height - margin) continue;
+
+    let colIndex = floor(x / stitchWidth);
+
+    let baseEven = color(...colorEven);
+    let baseOdd  = color(...colorOdd);
+
+    let isEven = colIndex % 2 === 0;
+
+    let fromColor = isEven ? baseEven : baseOdd;
+    let toColor   = isEven ? baseOdd  : baseEven;
+
+    let finalColor = row.state === "fading"
+      ? lerpColor(toColor, fromColor, row.fadeT)
+      : fromColor;
+
+    stroke(finalColor);
+    line(x, row.pos, x + stitchWidth, row.pos);
+  }
+}
+
+function drawVertical(col) {
+  for (let j = -stitchWidth; j < height; j += stitchWidth * 2) {
+
+    let y = j + col.slideOffset * stitchWidth + col.phase * stitchWidth;
+
+    if (col.pos < margin || col.pos > width - margin) continue;
+
+    let rowIndex = floor(y / stitchWidth);
+
+    let baseEven = color(...colorEven);
+    let baseOdd  = color(...colorOdd);
+
+    let isEven = rowIndex % 2 === 0;
+
+    let fromColor = isEven ? baseEven : baseOdd;
+    let toColor   = isEven ? baseOdd  : baseEven;
+
+    let finalColor = col.state === "fading"
+      ? lerpColor(toColor, fromColor, col.fadeT)
+      : fromColor;
+
+    stroke(finalColor);
+    line(col.pos, y, col.pos, y + stitchWidth);
   }
 }
 
@@ -45,100 +173,7 @@ function drawFaintGrid() {
   strokeWeight(1);
   for (let x = 0; x < width; x += stitchWidth) line(x, 0, x, height);
   for (let y = 0; y < height; y += stitchWidth) line(0, y, width, y);
-}
-
-function draw() {
-  background(30, 30, 47);
-  drawFaintGrid();
-
-  // --- Pick random batch of rows/columns ---
-  if (frameCount % stepFrames === 0) {
-    currentDirection = (currentDirection === 'horizontal') ? 'vertical' : 'horizontal';
-
-    if (currentDirection === 'horizontal') {
-      for (let row of rows) {
-        if (!row.moving && row.phase < 2 && row.cooldown === 0 && random() < batchChance) {
-          row.moving = true;
-        }
-      }
-    } else {
-      for (let col of cols) {
-        if (!col.moving && col.phase < 2 && col.cooldown === 0 && random() < batchChance) {
-          col.moving = true;
-        }
-      }
-    }
-  }
-
-  // --- Horizontal lines ---
-  for (let row of rows) {
-    if (row.cooldown > 0) row.cooldown--;
-
-    if (row.moving) {
-      row.slideOffset = min(row.slideOffset + speed, 1);
-      if (row.slideOffset >= 1) {
-        row.slideOffset = 0;
-        row.phase += 1;
-        row.moving = false;
-        row.cooldown = stepFrames;
-      }
-      if (row.phase >= 2) {
-        row.phase = 0;
-        row.slideOffset = 0;
-      }
-    }
-
-    for (let i = -stitchWidth; i < width; i += stitchWidth * 2) {
-      let x = i + row.slideOffset * stitchWidth + row.phase * stitchWidth;
-
-      if ((x < margin || x + stitchWidth > width - margin || (x >= margin && x + stitchWidth <= width - margin))
-          && !(row.y < margin || row.y > height - margin)) {
-
-        // Determine column index of this stitch
-        let colIndex = floor(x / stitchWidth);
-
-        // Use same parity colour for all rows and columns
-        stroke((colIndex % 2 === 0) ? color(...colorEven) : color(...colorOdd));
-
-        line(x, row.y, x + stitchWidth, row.y);
-      }
-    }
-  }
-
-  // --- Vertical lines ---
-  for (let col of cols) {
-    if (col.cooldown > 0) col.cooldown--;
-
-    if (col.moving) {
-      col.slideOffset = min(col.slideOffset + speed, 1);
-      if (col.slideOffset >= 1) {
-        col.slideOffset = 0;
-        col.phase += 1;
-        col.moving = false;
-        col.cooldown = stepFrames;
-      }
-      if (col.phase >= 2) {
-        col.phase = 0;
-        col.slideOffset = 0;
-      }
-    }
-
-    for (let j = -stitchWidth; j < height; j += stitchWidth * 2) {
-      let y = j + col.slideOffset * stitchWidth + col.phase * stitchWidth;
-
-      if ((y < margin || y + stitchWidth > height - margin || (y >= margin && y + stitchWidth <= height - margin))
-          && !(col.x < margin || col.x > width - margin)) {
-
-        // Determine row index of this stitch
-        let rowIndex = floor(y / stitchWidth);
-
-        // Use same parity colour for verticals
-        stroke((rowIndex % 2 === 0) ? color(...colorEven) : color(...colorOdd));
-
-        line(col.x, y, col.x, y + stitchWidth);
-      }
-    }
-  }
+  strokeWeight(3);
 }
 
 function windowResized() {
