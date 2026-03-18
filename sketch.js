@@ -12,11 +12,11 @@ let currentDirection = 'horizontal';
 
 // Horizontal colours (blues)
 let hColorEven = [40, 150, 210];
-let hColorOdd  = [70, 110, 220];
+let hColorOdd  = [210, 50, 120];
 
 // Vertical colours (reds)
 let vColorEven = [220, 70, 60];
-let vColorOdd  = [210, 50, 120];
+let vColorOdd  = [70, 110, 220];
 
 let bandAlpha = 35;
 let bandWidth = stitchWidth * 0.5;
