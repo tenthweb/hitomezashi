@@ -5,7 +5,7 @@ let rows = [];
 
 let speed = 0.04;
 let stepFrames = 80;
-let batchChance = 0.4;
+let batchChance = 0.7;
 
 let fadeFrames = 30;
 let currentDirection = 'horizontal';
