@@ -18,7 +18,7 @@ let hColorOdd  = [210, 50, 120];
 let vColorEven = [220, 70, 60];
 let vColorOdd  = [70, 110, 220];
 
-let bandAlpha = 35;
+let bandAlpha = 50;
 let bandWidth = stitchWidth * 0.5;
 
 function setup() {
