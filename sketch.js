@@ -1,4 +1,4 @@
-let stitchWidth = 20;
+let stitchWidth = 30;
 let margin = 200;
 let cols = [];
 let rows = [];
